@@ -1,0 +1,94 @@
+# -------- OS / Editor junk --------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+
+# -------- Python / Notebooks --------
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+ENV/
+*.env
+.envrc
+.ipynb_checkpoints/
+.mypy_cache/
+.pytype/
+*.egg-info/
+.dist/
+build/
+dist/
+
+# -------- Logs / Artifacts --------
+*.log
+*.ckpt
+*.onnx
+*.tflite
+*.pb
+*.npz
+*.npy
+
+# -------- Archives / Large blobs --------
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+
+# -------- VSCode / JetBrains --------
+.vscode/
+.vscode-settings.json
+.idea/
+
+# -------- Project-specific: keep repo small --------
+# Keep a placeholder if you like:
+!**/.gitkeep
+
+# --- 1) DATA: Ignore everything under data/ by default ---
+data/**
+
+# Allow top-level data folders
+!data/
+!data/embryo_dataset_bronze/
+!data/embryo_dataset_annotations/
+!data/embryo_dataset_silver/
+
+# (a) Raw frames ("bronze"): include ONLY two embryos
+data/embryo_dataset_bronze/**
+!data/embryo_dataset_bronze/AA83-7/**
+!data/embryo_dataset_bronze/AAL839-6/**
+
+# (b) Annotations: include ONLY matching CSVs
+data/embryo_dataset_annotations/**
+!data/embryo_dataset_annotations/AA83-7_phases.csv
+!data/embryo_dataset_annotations/AAL839-6_phases.csv
+
+# (c) Preprocessed ("silver") F0: include ONLY the two embryos
+data/embryo_dataset_silver/**
+!data/embryo_dataset_silver/F0/
+data/embryo_dataset_silver/F0/**
+!data/embryo_dataset_silver/F0/AA83-7/** 
+!data/embryo_dataset_silver/F0/AAL839-6/**
+
+# --- 2) MODELS / WEIGHTS (never commit trained weights) ---
+preprocessing/embryo_presence_models/**
+classifier/embryo_phase_models/**
+diffusion/embryo_diffusion_models/**
+!preprocessing/embryo_presence_models/.gitkeep
+!classifier/embryo_phase_models/.gitkeep
+!diffusion/embryo_diffusion_models/.gitkeep
+
+# --- 3) Generated samples / predictions ---
+diffusion/diffusion_samples/**
+!diffusion/diffusion_samples/.gitkeep
+
+# --- 4) Checkpoints / training outputs (if stored elsewhere) ---
+**/checkpoints/**
+!**/checkpoints/.gitkeep
+
+# --- 5) Colab / runtime cache (if any) ---
+*.ipynb_convert
