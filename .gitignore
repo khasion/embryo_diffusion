@@ -49,29 +49,34 @@ dist/
 !**/.gitkeep
 
 # --- 1) DATA: Ignore everything under data/ by default ---
+# Ignore everything under data by default
 data/**
 
-# Allow top-level data folders
+# Unignore the data root and top-level dirs
 !data/
 !data/embryo_dataset_bronze/
 !data/embryo_dataset_annotations/
 !data/embryo_dataset_silver/
 
-# (a) Raw frames ("bronze"): include ONLY two embryos
+# ---- RAW (bronze): allow ONLY AA83-7 and AAL839-6
 data/embryo_dataset_bronze/**
+!data/embryo_dataset_bronze/AA83-7/
 !data/embryo_dataset_bronze/AA83-7/**
+!data/embryo_dataset_bronze/AAL839-6/
 !data/embryo_dataset_bronze/AAL839-6/**
 
-# (b) Annotations: include ONLY matching CSVs
+# ---- ANNOTATIONS: allow only matching CSVs
 data/embryo_dataset_annotations/**
 !data/embryo_dataset_annotations/AA83-7_phases.csv
 !data/embryo_dataset_annotations/AAL839-6_phases.csv
 
-# (c) Preprocessed ("silver") F0: include ONLY the two embryos
+# ---- SILVER F0: allow ONLY the two embryos
 data/embryo_dataset_silver/**
 !data/embryo_dataset_silver/F0/
 data/embryo_dataset_silver/F0/**
-!data/embryo_dataset_silver/F0/AA83-7/** 
+!data/embryo_dataset_silver/F0/AA83-7/
+!data/embryo_dataset_silver/F0/AA83-7/**
+!data/embryo_dataset_silver/F0/AAL839-6/
 !data/embryo_dataset_silver/F0/AAL839-6/**
 
 # --- 2) MODELS / WEIGHTS (never commit trained weights) ---
