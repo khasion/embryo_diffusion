@@ -60,10 +60,8 @@ data/**
 
 # ---- RAW (bronze): allow ONLY AA83-7 and AAL839-6
 data/embryo_dataset_bronze/**
-!data/embryo_dataset_bronze/AA83-7/
-!data/embryo_dataset_bronze/AA83-7/**
-!data/embryo_dataset_bronze/AAL839-6/
-!data/embryo_dataset_bronze/AAL839-6/**
+!data/embryo_dataset_bronze/F0/
+!data/embryo_dataset_bronze/F0/.gitkeep
 
 # ---- ANNOTATIONS: allow only matching CSVs
 data/embryo_dataset_annotations/**
@@ -73,11 +71,9 @@ data/embryo_dataset_annotations/**
 # ---- SILVER F0: allow ONLY the two embryos
 data/embryo_dataset_silver/**
 !data/embryo_dataset_silver/F0/
-data/embryo_dataset_silver/F0/**
-!data/embryo_dataset_silver/F0/AA83-7/
-!data/embryo_dataset_silver/F0/AA83-7/**
-!data/embryo_dataset_silver/F0/AAL839-6/
-!data/embryo_dataset_silver/F0/AAL839-6/**
+data/embryo_dataset_silver/F0/.gitkeep
+
+
 
 # --- 2) MODELS / WEIGHTS (never commit trained weights) ---
 preprocessing/embryo_presence_models/**
@@ -86,6 +82,7 @@ diffusion/embryo_diffusion_models/**
 !preprocessing/embryo_presence_models/.gitkeep
 !classifier/embryo_phase_models/.gitkeep
 !diffusion/embryo_diffusion_models/.gitkeep
+diffusion/cache/**
 
 # --- 3) Generated samples / predictions ---
 diffusion/diffusion_samples/**
