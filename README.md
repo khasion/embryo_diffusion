@@ -6,9 +6,15 @@ Overview
 This repository contains the code and project structure for the MSc thesis:
 "Time Prediction for Embryo Development using Diffusion Models".
 
-Goal: Given a single embryo image at time t, predict future (or past) frames of the same embryo,
-synthesizing realistic morpho-kinetic evolution. We train a conditional diffusion model adapted
-to video (frame-to-frame prediction), guided by predicted morpho-kinetic phase labels.
+Goal: Given a short **context window** of $k$ embryo frames ending at time $t$, predict the
+next frame at $t+1$ (strictly adjacent) and roll out multiple steps by feeding generated frames
+back into the context. The diffusion model is conditioned on the $k$ previous frames and an
+optional **absolute frame index embedding**.
+
+Guidance options:
+- **Classifier-free guidance** (built-in during training/sampling).
+- **External classifier guidance** at sampling time using your pretrained phase classifier
+   (optional and safe to disable if the classifier cannot be loaded).
 
 Core components:
 - Automated preprocessing
@@ -25,9 +31,9 @@ thesis/
 │   ├── embryo_dataset_bronze/                 # raw frames (per-embryo folders, original names)
 │   ├── embryo_dataset_annotations/            # original *_phases.csv (kept as-is)
 │   └── embryo_dataset_silver/
-│       └── F0/                                # preprocessed outputs (original 1-based indices preserved)
+│       └── <plane_id>/                        # e.g., F0, F-15, F30, ...
 │           └── <embryo_id>/
-│               ├── 00001.jpg, 00002.jpg, ...
+│               ├── 00001.jpeg, 00002.jpeg, ...
 │               └── <embryo_id>_phases.csv (copied unchanged)
 │
 ├── preprocessing/
@@ -42,6 +48,7 @@ thesis/
 ├── diffusion/
 │   ├── embryo_diffusion_models/               # saved diffusion weights (.pth) [ignored in git]
 │   ├── diffusion_samples/                     # generated samples / predictions [ignored in git]
+│   ├── cache/                                  # cached frame index + splits
 │   └── train_diffusion.ipynb
 │
 └── old notebooks/
@@ -66,12 +73,12 @@ are included under `data/`:
 - All remaining data are ignored via `.gitignore`.
 
 If you have access to the full dataset, place it as:
-- Raw F0 frames (JPEG, 500x500): `data/embryo_dataset_bronze/<embryo_id>/*.jpg`
-- Annotations CSV:              `data/embryo_dataset_annotations/<embryo_id>_phases.csv`
+- Raw frames (JPEG, 500x500): `data/embryo_dataset_bronze/<embryo_id>/*.jpg`
+- Annotations CSV:            `data/embryo_dataset_annotations/<embryo_id>_phases.csv`
 
 Preprocessing outputs will be written to:
-- `data/embryo_dataset_silver/F0/<embryo_id>/` with filenames preserving original 1-based indices
-  (e.g., 00001.jpg, 00037.jpg). Skipped frames remain missing (gaps kept).
+- `data/embryo_dataset_silver/<plane_id>/<embryo_id>/` with filenames preserving original 1-based indices
+   (e.g., 00001.jpeg, 00037.jpeg). Skipped frames remain missing (gaps kept).
 - Phase CSVs are copied unchanged.
 
 Please respect the dataset license and cite the authors when using the data in publications.
@@ -93,33 +100,36 @@ Setup
 
 Run Order (Recommended)
 -----------------------
-1) Train/update presence classifier
+1) Train/update presence classifier *(optional if you already have silver data)*
    - `preprocessing/train_presence_classifier.ipynb`
    - Saves to: `preprocessing/embryo_presence_models/embryo_presence_resnet18.pth`
 
-2) Build preprocessed dataset (Silver F0)
+2) Build preprocessed dataset (Silver)
    - `preprocessing/preprocess_dataset.ipynb`
    - Uses the presence model to drop non-embryo frames; preserves original indices.
-   - Outputs under: `data/embryo_dataset_silver/F0/<embryo_id>/`
+   - Outputs under: `data/embryo_dataset_silver/<plane_id>/<embryo_id>/`
 
-3) Train/update phase classifier (for guidance/analysis)
+3) Train/update phase classifier *(optional, for external guidance)*
    - `classifier/train_phase_classifier.ipynb`
-   - Saves to: `classifier/embryo_phase_models/phase_classifier_model.pth`
+   - Saves to: `classifier/embryo_phase_models/`
 
 4) Train the conditional diffusion model
    - `diffusion/train_diffusion.ipynb`
-   - Consumes preprocessed frames, optionally guided with predicted phases (16 labels).
+   - Consumes preprocessed frames and builds **context→target** pairs (strictly adjacent, $\Delta t = 1$).
+   - Optional external classifier guidance at sampling time.
    - Saves weights to: `diffusion/embryo_diffusion_models/`
    - Samples / predictions: `diffusion/diffusion_samples/`
 
 
 Conventions
 -----------
-- Filenames: Preprocessed frames keep original 1-based indices (e.g., 00001.jpg).
+- Filenames: Preprocessed frames keep original 1-based indices (e.g., 00001.jpeg).
 - Gaps: Missing indices indicate filtered/absent frames; do not renumber.
+- Data planes: Configure `FOCAL_PLANES` in the diffusion notebook (e.g., `['F0']`).
+- Cache: Frame index + splits are cached under `diffusion/cache/`.
 - Presence model path (default): `preprocessing/embryo_presence_models/embryo_presence_resnet18.pth`
-- Phase classifier path (default): `classifier/embryo_phase_models/phase_classifier_model.pth`
-- Diffusion weights path (default): `diffusion/embryo_diffusion_models/diffusion_model.pth`
+- Phase classifier path (default): auto-detected in `classifier/embryo_phase_models/`
+- Diffusion checkpoint (default): `diffusion/embryo_diffusion_models/nextframe_ctxk7_128px.pt`
 
 
 Evaluation

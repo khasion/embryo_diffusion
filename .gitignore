@@ -86,6 +86,10 @@ diffusion/cache/**
 
 # --- 3) Generated samples / predictions ---
 diffusion/diffusion_samples/**
+!diffusion/diffusion_samples/ad_hoc_samples/
+!diffusion/diffusion_samples/ad_hoc_samples/**
+!diffusion/diffusion_samples/eval_artifacts/
+!diffusion/diffusion_samples/eval_artifacts/**
 !diffusion/diffusion_samples/.gitkeep
 
 # --- 4) Checkpoints / training outputs (if stored elsewhere) ---
@@ -94,3 +98,4 @@ diffusion/diffusion_samples/**
 
 # --- 5) Colab / runtime cache (if any) ---
 *.ipynb_convert
+
