@@ -20,7 +20,7 @@ Core components:
 - Automated preprocessing
 - Frame presence filtering (keep only frames that contain an embryo)
 - Phase classifier for guidance/analysis (16 morpho-kinetic phases)
-- Conditional diffusion model for Δt prediction (x_t → x_{t+Δt})
+- Conditional diffusion model for next frame prediction (x_t-k, ..., x_t → x_t+1)
 
 
 Repository Layout
