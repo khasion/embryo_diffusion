@@ -43,6 +43,10 @@ dist/
 .vscode/
 .vscode-settings.json
 .idea/
+.codex
+.tmp_train_diffusion_cells.py
+overleaf_logs.txt
+
 
 # -------- Project-specific: keep repo small --------
 # Keep a placeholder if you like:
@@ -91,6 +95,13 @@ diffusion/diffusion_samples/**
 !diffusion/diffusion_samples/eval_artifacts/
 !diffusion/diffusion_samples/eval_artifacts/**
 !diffusion/diffusion_samples/.gitkeep
+
+diffusion/diffusion_eval/**
+
+#diffusion/*.pdf
+
+diffusion/perturbation_viz.ipynb
+
 
 # --- 4) Checkpoints / training outputs (if stored elsewhere) ---
 **/checkpoints/**

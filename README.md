@@ -66,11 +66,11 @@ The project uses the public time-lapse human embryo dataset described in:
 
 Dataset DOI: 10.5281/zenodo.6390798
 
-IMPORTANT: To keep this repository small and license-compliant, only TWO example embryos
-are included under `data/`:
-- IDs: AA83-7 and AAL839-6
-- Included in all relevant locations (raw bronze frames, matching `_phases.csv`, and preprocessed silver/F0)
-- All remaining data are ignored via `.gitignore`.
+The full dataset is included under `data/`:
+- **704 embryos** with matching `_phases.csv` annotations under `data/embryo_dataset_annotations/`
+- Raw bronze frames organized per focal plane under `data/embryo_dataset_bronze/<plane_id>/<embryo_id>/`
+- Preprocessed silver frames under `data/embryo_dataset_silver/<plane_id>/<embryo_id>/` (7 focal planes: F-45 → F45)
+- Large model weights and generated samples remain ignored via `.gitignore`.
 
 If you have access to the full dataset, place it as:
 - Raw frames (JPEG, 500x500): `data/embryo_dataset_bronze/<embryo_id>/*.jpg`

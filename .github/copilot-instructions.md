@@ -26,7 +26,7 @@
 
 ## Workflow hints
 - Start from the notebook map in diffusion/train_diffusion.ipynb and follow its section order.
-- The repository includes only two example embryos; full datasets must be placed under data/ per README.
+- The full dataset (704 embryos, 7 focal planes) is present under data/; see README for layout.
 
 ## Files to reference for patterns
 - README.md (project layout, run order, dataset rules)

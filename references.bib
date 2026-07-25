@@ -1,0 +1,241 @@
+% ============================================================
+%  references.bib – Bibliography for MSc Thesis
+%  "Time Prediction for Embryo Development Using Diffusion Models"
+% ============================================================
+
+% ---- Dataset ----
+@article{gomez2022,
+  author    = {Tiphaine Gomez and
+               Tiphaine Pincot and
+               Nicolas Garrec and
+               Thomas Fréour and
+               Arnaud Barrière and
+               Stéphane Bouet and
+               Thomas Ferré and
+               Jean-Sébastien Freour and
+               Antoine Guerif},
+  title     = {A time-lapse embryo dataset for morphokinetic parameter prediction},
+  journal   = {Data in Brief},
+  volume    = {42},
+  pages     = {108258},
+  year      = {2022},
+  doi       = {10.1016/j.dib.2022.108258},
+  note      = {CC BY 4.0. DOI: 10.5281/zenodo.6390798}
+}
+
+% ---- Diffusion models ----
+@inproceedings{sohl2015deep,
+  author    = {Jascha Sohl-Dickstein and
+               Eric A. Weiss and
+               Niru Maheswaranathan and
+               Surya Ganguli},
+  title     = {Deep Unsupervised Learning using Nonequilibrium Thermodynamics},
+  booktitle = {Proceedings of the 32nd International Conference on Machine Learning (ICML)},
+  year      = {2015},
+  pages     = {2256--2265}
+}
+
+@inproceedings{ho2020ddpm,
+  author    = {Jonathan Ho and
+               Ajay Jain and
+               Pieter Abbeel},
+  title     = {Denoising Diffusion Probabilistic Models},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {33},
+  year      = {2020},
+  pages     = {6840--6851}
+}
+
+@inproceedings{song2021ddim,
+  author    = {Jiaming Song and
+               Chenlin Meng and
+               Stefano Ermon},
+  title     = {Denoising Diffusion Implicit Models},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021}
+}
+
+@inproceedings{dhariwal2021beatgans,
+  author    = {Prafulla Dhariwal and
+               Alexander Quinn Nichol},
+  title     = {Diffusion Models Beat {GAN}s on Image Synthesis},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {34},
+  year      = {2021},
+  pages     = {8780--8794}
+}
+
+@inproceedings{rombach2022ldm,
+  author    = {Robin Rombach and
+               Andreas Blattmann and
+               Dominik Lorenz and
+               Patrick Esser and
+               Björn Ommer},
+  title     = {High-Resolution Image Synthesis with Latent Diffusion Models},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and
+               Pattern Recognition (CVPR)},
+  year      = {2022},
+  pages     = {10684--10695}
+}
+
+@article{ramesh2022dalle2,
+  author    = {Aditya Ramesh and
+               Prafulla Dhariwal and
+               Alex Nichol and
+               Casey Chu and
+               Mark Chen},
+  title     = {Hierarchical Text-Conditional Image Generation with {CLIP} Latents},
+  journal   = {arXiv preprint arXiv:2204.06125},
+  year      = {2022}
+}
+
+@inproceedings{hang2023minsnr,
+  author    = {Tiankai Hang and
+               Shuyang Gu and
+               Chen Li and
+               Jianmin Bao and
+               Dong Chen and
+               Han Hu and
+               Xin Geng and
+               Baining Guo},
+  title     = {Efficient Diffusion Training via Min-{SNR} Weighting Strategy},
+  booktitle = {Proceedings of the IEEE/CVF International Conference on Computer
+               Vision (ICCV)},
+  year      = {2023},
+  pages     = {7441--7451}
+}
+
+% ---- Video / temporal diffusion ----
+@article{ho2022video,
+  author    = {Jonathan Ho and
+               Tim Salimans and
+               Alexey A. Gritsenko and
+               William Chan and
+               Mohammad Norouzi and
+               David J. Fleet},
+  title     = {Video Diffusion Models},
+  journal   = {arXiv preprint arXiv:2204.03458},
+  year      = {2022}
+}
+
+@inproceedings{harvey2022flexible,
+  author    = {William Harvey and
+               Saeid Naderiparizi and
+               Vaden Masrani and
+               Christian Weilbach and
+               Frank Wood},
+  title     = {Flexible Diffusion Modeling of Long Videos},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {35},
+  year      = {2022}
+}
+
+% ---- Embryo analysis / related work ----
+@article{khosravi2019,
+  author    = {Pegah Khosravi and
+               Ehsan Kazemi and
+               Qianshun Zhan and
+               Jonas E. Malmsten and
+               Marco Toschi and
+               Pantelis Zisimopoulos and
+               Alexandros Sigaras and
+               Stuart Lavery and
+               Sameer S. M. Bhatt and
+               Olivier Elemento and
+               Zev Rosenwaks and
+               Iman Hajirasouliha and
+               Nikica Zaninovic},
+  title     = {Deep learning enables robust assessment and selection of human blastocysts
+               after in vitro fertilization},
+  journal   = {npj Digital Medicine},
+  volume    = {2},
+  pages     = {21},
+  year      = {2019},
+  doi       = {10.1038/s41746-019-0096-y}
+}
+
+@inproceedings{tran2019,
+  author    = {Doan Tran and
+               Hoang Le},
+  title     = {Time-lapse Microscopy Image Analysis for {IVF}},
+  booktitle = {Proceedings of the IEEE International Symposium on Biomedical Imaging (ISBI)},
+  year      = {2019},
+  pages     = {476--479}
+}
+
+% ---- Generative models for medical imaging ----
+@article{yi2019review,
+  author    = {Xin Yi and
+               Ekta Walia and
+               Paul Babyn},
+  title     = {Generative adversarial network in medical imaging: A review},
+  journal   = {Medical Image Analysis},
+  volume    = {58},
+  pages     = {101552},
+  year      = {2019},
+  doi       = {10.1016/j.media.2019.101552}
+}
+
+% ---- Architecture / training tools ----
+@software{von2022diffusers,
+  author       = {Patrick von Platen and
+                  Suraj Patil and
+                  Anton Lozhkov and
+                  Pedro Cuenca and
+                  Nathan Lambert and
+                  Kashif Rasul and
+                  Mishig Davaadorj and
+                  Thomas Wolf},
+  title        = {Diffusers: State-of-the-art diffusion models},
+  year         = {2022},
+  url          = {https://github.com/huggingface/diffusers}
+}
+
+@inproceedings{loshchilov2019decoupled,
+  author    = {Ilya Loshchilov and
+               Frank Hutter},
+  title     = {Decoupled Weight Decay Regularization},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2019}
+}
+
+% ---- Metrics ----
+@article{wang2004ssim,
+  author    = {Zhou Wang and
+               Alan C. Bovik and
+               Hamid R. Sheikh and
+               Eero P. Simoncelli},
+  title     = {Image Quality Assessment: From Error Visibility to Structural Similarity},
+  journal   = {IEEE Transactions on Image Processing},
+  volume    = {13},
+  number    = {4},
+  pages     = {600--612},
+  year      = {2004},
+  doi       = {10.1109/TIP.2003.819861}
+}
+
+@inproceedings{zhang2018lpips,
+  author    = {Richard Zhang and
+               Phillip Isola and
+               Alexei A. Efros and
+               Eli Shechtman and
+               Oliver Wang},
+  title     = {The Unreasonable Effectiveness of Deep Features as a Perceptual Metric},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and
+               Pattern Recognition (CVPR)},
+  year      = {2018},
+  pages     = {586--595}
+}
+
+% ---- Curriculum / scheduled sampling ----
+@inproceedings{bengio2009curriculum,
+  author    = {Yoshua Bengio and
+               Jérôme Louradour and
+               Ronan Collobert and
+               Jason Weston},
+  title     = {Curriculum Learning},
+  booktitle = {Proceedings of the 26th Annual International Conference on
+               Machine Learning (ICML)},
+  year      = {2009},
+  pages     = {41--48}
+}

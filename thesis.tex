@@ -1,0 +1,1462 @@
+% ==============================================================================
+%  MSc Thesis – Time Prediction for Embryo Development Using Diffusion Models
+%  Author : Ioannis Kasionis
+%  Date   : May 2026
+% ==============================================================================
+\documentclass[12pt, a4paper, twoside]{report}
+
+% ---------------------------------------------------------------------------
+%  Packages
+% ---------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% Page layout
+\usepackage[top=3cm, bottom=3cm, left=3.5cm, right=2.5cm,
+            headheight=15pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{emptypage}   % suppress headers/footers on truly empty pages
+
+% Math
+\usepackage{amsmath, amssymb, amsthm, mathtools, bm}
+
+% Graphics / figures
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, calc}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+
+% Captions
+\usepackage[font=small, labelfont=bf]{caption}
+
+% Code / algorithms
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  captionpos=b
+}
+
+% Hyperlinks (load near last)
+\usepackage[hidelinks, colorlinks=true,
+            linkcolor=blue!60!black,
+            citecolor=green!40!black,
+            urlcolor=blue!70!black]{hyperref}
+\usepackage{cleveref}
+
+% Bibliography
+\usepackage[backend=biber, style=ieee, sortcites=true]{biblatex}
+\addbibresource{references.bib}
+
+% Misc
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{tocloft}
+\usepackage{acronym}
+\usepackage{rotating}
+\usepackage{pdfpages}
+\usepackage{lipsum}   % remove in final version
+
+% ---------------------------------------------------------------------------
+%  Custom commands
+% ---------------------------------------------------------------------------
+\newcommand{\thesis}{Time Prediction for Embryo Development Using Diffusion Models}
+\newcommand{\theauthor}{Ioannis Kasionis}
+\newcommand{\theyear}{2026}
+
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\eps}{\boldsymbol{\varepsilon}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\ctx}{\text{ctx}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+
+\DeclareMathOperator{\SNR}{SNR}
+
+% ---------------------------------------------------------------------------
+%  Page style
+% ---------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\nouppercase{\leftmark}}
+\fancyhead[RO]{\nouppercase{\rightmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setstretch{1.3}
+
+% ==============================================================================
+\begin{document}
+
+% ---------------------------------------------------------------------------
+%  Front matter
+% ---------------------------------------------------------------------------
+\pagenumbering{roman}
+
+% ---- Title page ----
+\begin{titlepage}
+\begin{center}
+  \vspace*{1cm}
+  {\LARGE \textbf{Department of Computer Science and Engineering}}\\[0.5em]
+  {\large MSc in Artificial Intelligence}\\
+  \vspace{2cm}
+  \includegraphics[width=0.25\textwidth]{figures/university_logo}\\  % replace with your logo
+  \vspace{2cm}
+  {\Huge \textbf{\thesis}}\\
+  \vspace{1.5cm}
+  {\large Master's Thesis}\\
+  \vspace{1cm}
+  {\Large \theauthor}\\
+  \vspace{2cm}
+  \begin{tabular}{ll}
+    \textbf{Supervisor:} & [Supervisor Name] \\
+  \end{tabular}
+  \vfill
+  {\large \theyear}
+\end{center}
+\end{titlepage}
+
+\cleardoublepage
+
+% ---- Declaration ----
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+I hereby declare that this thesis is my own work and that, to the best of my
+knowledge and belief, it contains no material previously published or written
+by another person, nor material which has been accepted for the award of any
+other degree or diploma, except where due acknowledgement has been made.
+
+\bigskip
+\noindent Ioannis Kasionis \hfill \theyear
+
+\cleardoublepage
+
+% ---- Abstract ----
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This thesis investigates \emph{temporal next-frame prediction} of human embryo
+development using conditional diffusion models.
+Given a short temporal context window of $k$ consecutive embryo frames ending
+at time $t$, the objective is to synthesize the subsequent frame at $t{+}1$
+and, by iteratively rolling the context window forward, generate arbitrarily
+long future sequences.
+
+The work covers the full pipeline from raw data to trained model:
+an automated preprocessing stage applies embryo presence filtering, embryo-centred
+circular cropping, and contrast-limited adaptive histogram equalisation (CLAHE);
+a binary presence classifier removes invalid frames before training;
+a multi-class morpho-kinetic phase classifier ($16$ developmental phases) is
+trained for analysis and optional classifier-guided rollout;
+and a context-conditioned denoising diffusion probabilistic model (DDPM) is
+trained to predict the next frame via a UNet equipped with cross-attention over
+context tokens.
+
+Quantitative evaluation on a held-out embryo-level test split reports an
+average SSIM of $0.436$ and LPIPS of $0.116$ for one-step prediction.
+Multi-step free-running rollouts demonstrate plausible short-horizon generation
+while exhibiting gradual structural drift over longer horizons, consistent with
+autoregressive error accumulation.
+The results establish a strong diffusion-based baseline for embryo time-lapse
+prediction and motivate future work on morphologically consistent long-rollout
+generation.
+
+\bigskip
+\noindent\textbf{Keywords:} diffusion models, embryo development, next-frame
+prediction, morpho-kinetics, time-lapse microscopy, conditional generation.
+
+\cleardoublepage
+
+% ---- Acknowledgements ----
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+I would like to thank my supervisor and all those who supported this work.
+The embryo time-lapse dataset was provided by Gomez et al.~\cite{gomez2022}
+under the CC BY 4.0 licence.
+
+\cleardoublepage
+
+% ---- Table of Contents / Lists ----
+\tableofcontents
+\cleardoublepage
+
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\cleardoublepage
+
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+\cleardoublepage
+
+% ---- Abbreviations ----
+\chapter*{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\begin{acronym}[CLAHE]
+  \acro{DDPM}{Denoising Diffusion Probabilistic Model}
+  \acro{DDIM}{Denoising Diffusion Implicit Model}
+  \acro{CNN}{Convolutional Neural Network}
+  \acro{UNet}{U-shaped Network}
+  \acro{CLAHE}{Contrast Limited Adaptive Histogram Equalisation}
+  \acro{MSE}{Mean Squared Error}
+  \acro{MAE}{Mean Absolute Error}
+  \acro{SSIM}{Structural Similarity Index Measure}
+  \acro{LPIPS}{Learned Perceptual Image Patch Similarity}
+  \acro{SNR}{Signal-to-Noise Ratio}
+  \acro{EMA}{Exponential Moving Average}
+  \acro{AMP}{Automatic Mixed Precision}
+  \acro{AdamW}{Adam with Weight Decay}
+  \acro{CFG}{Classifier-Free Guidance}
+  \acro{IVF}{In Vitro Fertilisation}
+\end{acronym}
+
+\cleardoublepage
+
+% ---------------------------------------------------------------------------
+%  Main matter
+% ---------------------------------------------------------------------------
+\pagenumbering{arabic}
+
+% ==============================================================================
+\chapter{Introduction}
+\label{chap:introduction}
+% ==============================================================================
+
+\section{Motivation}
+\label{sec:motivation}
+
+Human embryo development is a complex, time-dependent biological process that
+exhibits characteristic morphological transitions across well-defined
+developmental phases.
+In the context of assisted reproduction, the selection of the most viable
+embryo for transfer is a critical clinical decision that directly influences
+the probability of successful implantation.
+Modern time-lapse incubators continuously acquire microscopy images of
+developing embryos at fixed temporal intervals, creating high-resolution
+recordings of the entire pre-implantation period.
+These recordings encode rich temporal and morphological information that is
+currently interpreted by trained embryologists who score embryos according to
+standardised morpho-kinetic criteria.
+
+Machine learning methods have begun to complement manual assessment by
+automating classification of developmental phases and grading of embryo
+quality.
+However, most existing approaches treat the problem as a static image
+classification task, ignoring the inherent temporal dynamics of embryo
+development.
+Generative models that can plausibly \emph{predict} future developmental
+states could open new clinical and scientific possibilities: prospective
+viability assessment, simulation-based embryo selection, and data augmentation
+for downstream classification models.
+
+\section{Problem Statement}
+\label{sec:problem}
+
+This thesis addresses the problem of \textbf{next-frame prediction} in human
+embryo time-lapse sequences.
+Formally, given a context window of $k$ consecutive, preprocessed grayscale
+embryo frames
+\[
+  \mathbf{c}_t = \bigl(x_{t-k+1}, \, x_{t-k+2}, \, \ldots, \, x_t\bigr)
+\]
+observed up to time $t$, the goal is to synthesise a plausible frame
+$\hat{x}_{t+1}$ at the next time point.
+Multi-step rollouts are obtained by iteratively appending the generated frame
+to the context and advancing the window:
+\[
+  \hat{x}_{t+j+1} = f\!\left(\hat{x}_{t+j-k+1}, \ldots, \hat{x}_{t+j}\right),
+  \quad j = 0, 1, 2, \ldots
+\]
+
+Three desiderata guide the approach:
+\begin{enumerate}[label=(\roman*)]
+  \item \textbf{Visual realism}: generated frames must resemble authentic
+        microscopy images in texture and intensity distribution.
+  \item \textbf{Temporal consistency}: generated frames must be plausible
+        continuations of the conditioning context.
+  \item \textbf{Morphological correctness}: generated frames should preserve
+        and appropriately evolve coarse embryo structure across phase
+        transitions.
+\end{enumerate}
+
+\section{Approach Overview}
+\label{sec:approach}
+
+The approach follows a structured pipeline comprising four components:
+\begin{enumerate}
+  \item \textbf{Preprocessing}: an automated pipeline converts raw bronze
+        frames into a filtered, normalised \emph{silver} dataset.
+  \item \textbf{Presence classifier}: a binary convolutional model filters
+        frames that do not contain a visible embryo before training.
+  \item \textbf{Phase classifier}: a multi-class convolutional model maps
+        single frames to one of 16 morpho-kinetic phases, used for analysis
+        and optional guided rollout.
+  \item \textbf{Diffusion model}: a context-conditioned
+        \texttt{UNet2DConditionModel} is trained for noise prediction on
+        strictly adjacent frame pairs.
+\end{enumerate}
+
+\section{Contributions}
+\label{sec:contributions}
+
+The main contributions of this thesis are:
+\begin{itemize}
+  \item A fully automated, reproducible preprocessing pipeline for the public
+        Gomez et al.\ embryo time-lapse dataset that produces a high-quality
+        silver dataset across seven focal planes.
+  \item A morpho-kinetic phase classifier achieving strong performance across
+        16 developmental phases.
+  \item A context-conditioned diffusion model with absolute frame-index
+        temporal embedding and cross-attention context conditioning, designed
+        specifically for embryo next-frame prediction.
+  \item A comprehensive quantitative and qualitative evaluation covering
+        one-step prediction, transition vs.\ non-transition analysis, and
+        multi-step free-running rollouts.
+\end{itemize}
+
+\section{Thesis Structure}
+\label{sec:structure}
+
+The remainder of this thesis is organised as follows.
+\Cref{chap:background} reviews relevant background on diffusion models and
+related generative approaches.
+\Cref{chap:dataset} describes the dataset and the preprocessing pipeline.
+\Cref{chap:auxiliary} presents the auxiliary classification models.
+\Cref{chap:diffusion} introduces the diffusion model architecture, training
+objective, and sampling procedure.
+\Cref{chap:experiments} presents experimental results.
+\Cref{chap:discussion} discusses limitations and future directions.
+\Cref{chap:conclusion} concludes the thesis.
+
+% ==============================================================================
+\chapter{Background and Related Work}
+\label{chap:background}
+% ==============================================================================
+
+\section{Diffusion Probabilistic Models}
+\label{sec:diffusion_background}
+
+Diffusion probabilistic models~\cite{sohl2015deep,ho2020ddpm} are a class of
+latent variable models that define a \emph{forward process} that gradually
+corrupts data $x_0$ into Gaussian noise over $T$ discrete timesteps, and a
+\emph{reverse process} that learns to invert this corruption.
+
+\subsection{Forward Process}
+\label{ssec:forward}
+
+The forward process is a fixed Markov chain:
+\[
+  q(x_{1:T} \mid x_0) = \prod_{t=1}^{T} q(x_t \mid x_{t-1}), \qquad
+  q(x_t \mid x_{t-1}) = \calN\!\left(x_t;\, \sqrt{1-\beta_t}\, x_{t-1},\, \beta_t \mathbf{I}\right),
+\]
+where $\beta_1 < \beta_2 < \cdots < \beta_T$ is a variance schedule.
+Defining $\alpha_t = 1 - \beta_t$ and $\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s$,
+one can sample $x_t$ directly from $x_0$ in closed form:
+\[
+  x_t = \sqrt{\bar{\alpha}_t}\, x_0 + \sqrt{1-\bar{\alpha}_t}\, \eps,
+  \qquad \eps \sim \calN(\mathbf{0}, \mathbf{I}).
+\]
+
+\subsection{Reverse Process and Training Objective}
+\label{ssec:reverse}
+
+The reverse process is parameterised by a neural network
+$\eps_\theta(x_t, t)$ that predicts the noise component $\eps$:
+\[
+  \calL_{\text{simple}} = \E_{x_0,\, t,\, \eps}\!\left[
+    \left\|\eps - \eps_\theta(x_t, t)\right\|^2
+  \right].
+\]
+Ho et al.~\cite{ho2020ddpm} showed that this simplified objective
+outperforms the full variational lower bound in practice.
+
+\subsection{Min-SNR Reweighting}
+\label{ssec:min_snr}
+
+The signal-to-noise ratio at timestep $t$ is
+$\text{SNR}(t) = \bar\alpha_t / (1 - \bar\alpha_t)$.
+Hang et al.~\cite{hang2023minsnr} propose to clip the per-timestep loss
+weight at $\gamma_{\text{SNR}} = 5$:
+\[
+  w(t) = \min\!\left(\text{SNR}(t),\; \gamma_{\text{SNR}}\right),
+\]
+which prevents the training loss from being dominated by high-noise
+timesteps where learning the signal structure is difficult.
+
+\subsection{DDIM Sampling}
+\label{ssec:ddim}
+
+Denoising Diffusion Implicit Models~\cite{song2021ddim} define a
+non-Markovian inference process that produces the same marginals as the DDPM
+forward process but allows sampling in far fewer steps.
+The deterministic ($\eta = 0$) DDIM update is:
+\begin{align}
+  \hat{x}_0^{(t)} &= \frac{x_t - \sqrt{1-\bar\alpha_t}\,\eps_\theta(x_t,t)}
+                        {\sqrt{\bar\alpha_t}}, \\
+  x_{t-1} &= \sqrt{\bar\alpha_{t-1}}\, \hat{x}_0^{(t)}
+             + \sqrt{1-\bar\alpha_{t-1}}\, \eps_\theta(x_t, t).
+\end{align}
+
+\subsection{Conditional Diffusion Models}
+\label{ssec:conditional}
+
+Conditioning information $\mathbf{c}$ is incorporated by replacing
+$\eps_\theta(x_t, t)$ with $\eps_\theta(x_t, t, \mathbf{c})$.
+Common conditioning mechanisms include class embedding concatenation,
+cross-attention over token sequences~\cite{rombach2022ldm,ramesh2022dalle2},
+and channel-wise concatenation of conditioning images.
+In this work the context frames are encoded into a spatial token sequence
+that is consumed by a cross-attention module inside the UNet denoiser.
+
+\section{Convolutional Architectures for Embryo Analysis}
+\label{sec:related_cnn}
+
+Several works have applied CNNs to embryo quality assessment and phase
+classification.
+Khosravi et al.~\cite{khosravi2019} demonstrate that deep learning models
+trained on time-lapse data can predict morpho-kinetic parameters with
+accuracy comparable to experienced embryologists.
+Tran et al.~\cite{tran2019} train recurrent convolutional models to
+predict implantation outcome from morpho-kinetic annotations.
+Our phase classifier follows the same single-frame classification paradigm
+but extends it to 16 fine-grained developmental phases.
+
+\section{Generative Models for Medical Image Synthesis}
+\label{sec:related_generative}
+
+Generative adversarial networks (GANs) have been widely used for medical image
+synthesis, including augmentation of training sets and simulating imaging
+artefacts~\cite{yi2019review}.
+More recently, diffusion models have emerged as the leading paradigm for
+high-fidelity image generation, with stable training and improved coverage
+compared to GANs~\cite{dhariwal2021beatgans,ho2020ddpm}.
+Their application to time-series and video prediction is an active area of
+research~\cite{ho2022video,harvey2022flexible}, and this work adapts these
+ideas to the embryo domain.
+
+% ==============================================================================
+\chapter{Dataset and Preprocessing}
+\label{chap:dataset}
+% ==============================================================================
+
+\section{Dataset}
+\label{sec:dataset}
+
+The experiments use the public time-lapse embryo dataset introduced by
+Gomez et al.~\cite{gomez2022}.
+The dataset contains recordings of \textbf{704 human embryos} from IVF
+procedures.
+For each embryo, a sequence of JPEG images ($500 \times 500$ pixels) is
+provided together with a phase annotation CSV that records, for each
+developmental phase, the first frame at which the transition was observed.
+
+The raw dataset is organised as follows:
+\begin{itemize}
+  \item \texttt{data/embryo\_dataset\_bronze/} — raw per-embryo JPEG frames,
+        organised by focal plane.
+  \item \texttt{data/embryo\_dataset\_annotations/} — one
+        \texttt{<embryo\_id>\_phases.csv} per embryo.
+\end{itemize}
+
+Seven focal planes are available (F$-45$, F$-30$, F$-15$, F$0$, F$15$, F$30$,
+F$45$), where F$0$ refers to the focus plane closest to the equatorial section
+of the embryo.
+All primary experiments use the F$0$ plane unless stated otherwise.
+
+\subsection{Developmental Phases}
+\label{ssec:phases}
+
+Each embryo is annotated with up to 16 morpho-kinetic phases
+(Table~\ref{tab:phases}), spanning from the second polar body extrusion
+(\texttt{pPB2}) to the full blastocyst stage (\texttt{pHB}).
+Phase transitions are irreversible and strictly ordered in time.
+
+\begin{table}[H]
+\centering
+\caption{The 16 morpho-kinetic phase labels used in this work.}
+\label{tab:phases}
+\begin{tabular}{lll}
+\toprule
+\textbf{ID} & \textbf{Label} & \textbf{Description} \\
+\midrule
+1  & pPB2  & Second polar body extrusion \\
+2  & pPNa  & Pronuclear appearance \\
+3  & pPNf  & Pronuclear fading \\
+4  & p2    & 2-cell stage \\
+5  & p3    & 3-cell stage \\
+6  & p4    & 4-cell stage \\
+7  & p5    & 5-cell stage \\
+8  & p6    & 6-cell stage \\
+9  & p7    & 7-cell stage \\
+10 & p8    & 8-cell stage \\
+11 & p9+   & ${\geq}9$-cell stage \\
+12 & pM    & Morula \\
+13 & pSB   & Start of blastulation \\
+14 & pB    & Blastocyst \\
+15 & pEB   & Expanded blastocyst \\
+16 & pHB   & Hatching/hatched blastocyst \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Preprocessing Pipeline}
+\label{sec:preprocessing}
+
+\subsection{Design Principles}
+\label{ssec:preprocess_principles}
+
+The preprocessing pipeline converts raw bronze frames into a high-quality
+\emph{silver} dataset.
+The design adheres to three principles:
+\begin{enumerate}
+  \item \textbf{Determinism}: the pipeline is fully automated and reproducible.
+        Running it twice on the same input produces bit-identical output.
+  \item \textbf{Index preservation}: output frames retain their original
+        1-based frame indices (e.g., \texttt{00001.jpeg}, \texttt{00037.jpeg}).
+        Frames removed by filtering create explicit index gaps; there is no
+        renumbering.
+  \item \textbf{No temporal smoothing}: no interpolation or temporal
+        averaging is applied.
+\end{enumerate}
+
+\subsection{Embryo Presence Filtering}
+\label{ssec:presence_filtering}
+
+A binary presence classifier (described in \Cref{sec:presence_classifier}) is
+applied to each frame independently.
+Frames for which the classifier predicts \emph{no visible embryo} are discarded.
+This step removes background-only frames, acquisition artefacts, and severely
+degraded images before any further processing occurs.
+
+Frames are first sub-sampled according to a fixed temporal stride before
+classifier inference to reduce computational cost.
+
+\subsection{Spatial Cropping}
+\label{ssec:cropping}
+
+A circular crop centred on the embryo is applied using Hough circle detection.
+The Hough transform is run on a Gaussian-blurred edge map to robustly localise
+the circular well boundary that surrounds each embryo.
+If circle detection fails (e.g.\ due to overexposed frames or detection
+ambiguity), a fall-back centre crop of the same target size is used.
+The resulting crop is then resized to a fixed resolution.
+
+\subsection{Contrast Normalisation}
+\label{ssec:clahe}
+
+Contrast Limited Adaptive Histogram Equalisation (CLAHE) is applied after
+resizing.
+CLAHE subdivides the image into a grid of tiles and equalises the histogram
+within each tile while limiting contrast amplification via a configurable clip
+limit.
+This reduces illumination variability across embryos and focal planes, and
+enhances morphological detail that may otherwise be obscured by uneven
+background illumination.
+
+\subsection{Output Organisation}
+\label{ssec:silver_layout}
+
+Processed frames are written to:
+\begin{verbatim}
+data/embryo_dataset_silver/<plane_id>/<embryo_id>/<frame_idx>.jpeg
+\end{verbatim}
+Phase annotation CSV files are updated to reflect the retained frame indices
+after filtering and are copied alongside the images.
+
+\subsection{Quality Control}
+\label{ssec:quality_control}
+
+Basic consistency checks are applied throughout the pipeline:
+file readability is verified before processing, and frames that fail to load
+or produce invalid outputs are skipped with a warning.
+Misclassifications by the presence model may introduce short temporal gaps.
+These gaps are preserved and handled explicitly during training pair
+construction, rather than corrected heuristically.
+
+\section{Data Summary}
+\label{sec:data_summary}
+
+After preprocessing, the silver dataset contains:
+\begin{itemize}
+  \item \textbf{704 embryos} across seven focal planes (F$-45$ to F$45$).
+  \item Variable-length sequences per embryo, reflecting natural biological
+        variation in developmental rate.
+  \item Index gaps where frames were filtered by the presence classifier.
+\end{itemize}
+All experiments in this thesis use the F$0$ focal plane.
+
+% ==============================================================================
+\chapter{Auxiliary Classification Models}
+\label{chap:auxiliary}
+% ==============================================================================
+
+Two auxiliary convolutional classification models support the pipeline:
+an embryo presence classifier and a morpho-kinetic phase classifier.
+Neither model participates in the diffusion training objective.
+
+\section{Embryo Presence Classifier}
+\label{sec:presence_classifier}
+
+\subsection{Task and Architecture}
+\label{ssec:presence_arch}
+
+The presence classifier is a binary convolutional neural network that receives
+a single grayscale embryo frame and predicts whether it contains a visible,
+well-formed embryo (\texttt{T=1}) or not (\texttt{T=0}).
+
+Frames may be labelled negative for several reasons: the embryo well is empty,
+the acquisition was corrupted, the frame was captured before or after the
+embryo was present in the field of view, or imaging conditions were
+sufficiently degraded that morphological assessment is impossible.
+
+\subsection{Training}
+\label{ssec:presence_training}
+
+The model is trained on manually curated examples of valid and invalid frames
+drawn from the bronze dataset.
+Binary cross-entropy loss is used.
+Standard data augmentations (horizontal and vertical flips, brightness and
+contrast jitter) are applied during training.
+
+\subsection{Role in the Pipeline}
+\label{ssec:presence_role}
+
+The presence classifier is applied during preprocessing and determines which
+frames are retained in the silver dataset.
+It is not used during diffusion model training or sampling.
+
+\section{Morpho-Kinetic Phase Classifier}
+\label{sec:phase_classifier}
+
+\subsection{Task}
+\label{ssec:phase_task}
+
+The phase classifier assigns a single embryo frame to one of the 16
+developmental phases listed in Table~\ref{tab:phases}.
+It operates at the frame level and does not exploit temporal context.
+
+\subsection{Architecture and Training}
+\label{ssec:phase_arch}
+
+The classifier follows a convolutional architecture with grayscale input and
+a 16-way softmax output.
+An EfficientNet-based backbone is used, pre-trained on ImageNet and
+fine-tuned on the embryo data.
+Timestep-dependent Gaussian noise is added to input frames during training to
+improve robustness to mild imaging variability.
+
+Ground-truth labels are derived from the phase annotation CSV files by
+assigning each frame the phase in whose annotated interval it falls.
+Significant class imbalance exists (e.g.\ early 2-cell and blastocyst phases
+are under-represented), which is mitigated using weighted random sampling.
+
+Standard augmentations — horizontal flips, brightness and contrast jitter,
+and small rotations — are applied during training, while validation and
+testing use deterministic preprocessing.
+
+\subsection{Performance}
+\label{ssec:phase_results}
+
+Table~\ref{tab:phase_results} summarises the classifier's performance on the
+held-out test set.
+
+\begin{table}[H]
+\centering
+\caption{Phase classifier performance on the test set.}
+\label{tab:phase_results}
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Weighted F1 (F0 plane) & 0.643 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The confusion matrix (Figure~\ref{fig:confusion_matrix}) reveals that
+adjacent phases are most commonly confused, which is expected given that
+phase transitions occur gradually and the boundary between consecutive phases
+is not always visually unambiguous in a single frame.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.75\textwidth]{figures/confusion_matrix}
+\caption{Row-normalised confusion matrix of the phase classifier on the test
+         set. Adjacent-phase confusion dominates.}
+\label{fig:confusion_matrix}
+\end{figure}
+
+\subsection{Role in the Diffusion Pipeline}
+\label{ssec:phase_role}
+
+The phase classifier is \emph{not} used during diffusion model training.
+At sampling time it can optionally steer multi-step rollouts via a monotonic
+adjacent-confidence phase policy, which advances the phase label only when
+the classifier confidence in the next adjacent phase exceeds a threshold
+($\tau = 0.55$ in the default configuration).
+This guidance is disabled in all quantitative evaluations reported in this
+thesis.
+
+\begin{table}[H]
+\centering
+\caption{Summary of auxiliary model usage in the full pipeline.}
+\label{tab:auxiliary_summary}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & \textbf{Used in training} & \textbf{Used in sampling} \\
+\midrule
+Presence classifier & Yes (preprocessing) & No \\
+Phase classifier    & No                  & No (analysis only) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ==============================================================================
+\chapter{Diffusion Model for Next-Frame Prediction}
+\label{chap:diffusion}
+% ==============================================================================
+
+\section{Task Formulation}
+\label{sec:diff_task}
+
+The diffusion model is trained for \textbf{next-frame prediction} on the F$0$
+silver dataset.
+Let $x_{t+1} \in \R^{H \times W}$ denote the target frame and
+$\mathbf{c}_t = (x_{t-k+1}, \ldots, x_t)$ the context window of the $k$
+most recent frames.
+The model learns the conditional distribution:
+\[
+  p_\theta(x_{t+1} \mid \mathbf{c}_t, \, n_{t+1}),
+\]
+where $n_{t+1}$ is the absolute 1-based frame index of the target.
+
+\section{Data Preparation}
+\label{sec:diff_data}
+
+\subsection{Frame Index and Phase Assignment}
+\label{ssec:diff_index}
+
+A cached frame index is built by scanning the silver dataset.
+Frame numbers are parsed from filenames (e.g.\ \texttt{00042.jpeg}
+$\to$ frame index $42$) and treated as absolute 1-based time points.
+Each frame is assigned a phase label derived from the corresponding
+\texttt{<embryo\_id>\_phases.csv} by finding the phase interval that contains
+the frame index.
+Only frames with a valid phase assignment are included in the index.
+
+\subsection{Dataset Splits}
+\label{ssec:splits}
+
+Train/validation/test splits are performed at the \textbf{embryo level} to
+prevent data leakage: all frames from a given embryo appear in exactly one
+split.
+Splits are stratified by the dominant phase label per embryo to maintain
+similar phase distributions.
+The split sizes are given in Table~\ref{tab:splits}.
+
+\begin{table}[H]
+\centering
+\caption{Embryo-level split sizes (cached to disk).}
+\label{tab:splits}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Split} & \textbf{Embryos} & \textbf{Fraction} \\
+\midrule
+Train      & 565 & 80\% \\
+Validation & 69  & 10\% \\
+Test       & 69  & 10\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Pair Construction}
+\label{ssec:pair_construction}
+
+Training samples are constructed as deterministic, overlapping windows.
+A valid window $(\mathbf{c}_t, x_{t+1})$ requires that all $k+1$ consecutive
+frames exist in the index.
+Missing frames (filtered by the presence classifier during preprocessing)
+cause windows to be skipped rather than reindexed:
+\[
+  \text{valid pair} \iff
+    \{t{-}k{+}1, t{-}k{+}2, \ldots, t, t{+}1\} \subseteq \text{retained frames}.
+\]
+
+For validation and test sets, each pair is additionally labelled as a
+\emph{transition} if the phase label changes between $t$ and $t+1$, or
+\emph{non-transition} otherwise.
+This labelling enables separate qualitative and quantitative analysis of
+cross-phase and within-phase prediction.
+
+\section{Model Architecture}
+\label{sec:architecture}
+
+The model consists of two components: a \textbf{context encoder} and a
+\textbf{UNet denoiser}.
+Figure~\ref{fig:architecture} gives a schematic overview.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.85\textwidth]{figures/architecture}
+\caption{Architecture overview. The context encoder produces a sequence of
+         spatial tokens that condition the UNet denoiser via cross-attention.
+         The noisy target, a compressed context summary, and an optional
+         absolute frame-index map are concatenated as UNet input channels.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Context Encoder}
+\label{ssec:ctx_encoder}
+
+Each of the $k$ context frames is processed independently by a lightweight
+shared CNN:
+\begin{align*}
+  &\text{Conv}(1 \to 32, 3{\times}3, s2) \to \text{GELU} \\
+  &\text{Conv}(32 \to 64, 3{\times}3, s2) \to \text{GELU} \\
+  &\text{Conv}(64 \to D, 3{\times}3, s1) \to \text{GELU},
+\end{align*}
+where $D = 96$ is the context embedding dimension.
+The output feature map is resized to a fixed spatial grid of
+$16 \times 16$ tokens via bilinear interpolation.
+
+Three additive positional embeddings are added to each spatial feature map:
+\begin{enumerate}
+  \item A \emph{context position embedding} $\mathbf{p}_j \in \R^D$ that
+        encodes the temporal order of the $j$-th context frame ($j=1,\ldots,k$).
+  \item A \emph{spatial position embedding}
+        $\mathbf{P}_{\text{spatial}} \in \R^{D \times 16 \times 16}$
+        (a learnable parameter shared across all frames and timesteps).
+  \item An \emph{absolute frame-index embedding}
+        $\text{Emb}(n_j) \in \R^D$ derived from a learned embedding table,
+        where $n_j$ is the 1-based frame index of the $j$-th context frame.
+\end{enumerate}
+
+After adding all positional embeddings, the $k$ feature maps are flattened and
+concatenated into a token sequence of length $k \times 16 \times 16$,
+which is passed to the UNet via cross-attention:
+\[
+  \mathbf{Z} \in \R^{k \cdot 16 \cdot 16 \times D}.
+\]
+
+\subsection{Context Summary Channel}
+\label{ssec:ctx_summary}
+
+In addition to the cross-attention token sequence, a compact \emph{context
+summary image} is constructed by projecting the $k$ context channels through
+a shallow CNN:
+\[
+  f_\ctx: \R^{k \times H \times W} \to \R^{c_\ctx \times H \times W},
+  \qquad c_\ctx = 4.
+\]
+This summary is concatenated with the noisy target frame as additional input
+channels to the UNet, giving the denoiser direct pixel-level access to
+recent context information without routing everything through cross-attention.
+
+\subsection{Absolute Frame-Index Time Map}
+\label{ssec:time_map}
+
+When \texttt{USE\_TIME\_MAP=True}, the absolute index $n_{t+1}$ of the target
+frame is embedded via a learned embedding table of dimension
+$d_\text{time} = 8$, projected to a scalar via a linear layer, and broadcast
+to a spatial map of size $1 \times H \times W$:
+\[
+  \mathbf{m}_{t+1} = \text{proj}(\text{Emb}(n_{t+1})) \cdot \mathbf{1}_{H \times W}
+  \;\in\; \R^{1 \times H \times W}.
+\]
+This map is concatenated as a third input channel group, giving the denoiser
+explicit information about elapsed developmental time.
+
+\subsection{UNet Denoiser}
+\label{ssec:unet}
+
+The denoising backbone is a \texttt{UNet2DConditionModel} from the
+\texttt{diffusers} library~\cite{von2022diffusers}, configured with:
+\begin{itemize}
+  \item $1{+}4{+}1 = 6$ input channels (noisy target + context summary + time map).
+  \item 1 output channel (predicted noise on the target frame).
+  \item 5 encoder/decoder resolution levels with channel widths
+        $(32, 64, 128, 256, 256)$.
+  \item Cross-attention at the bottleneck resolution only
+        (\texttt{CrossAttnDownBlock2D}, \texttt{CrossAttnUpBlock2D}).
+  \item Cross-attention dimension $D = 96$.
+  \item Gradient checkpointing enabled to reduce GPU memory.
+\end{itemize}
+
+\section{Diffusion Schedule and Prediction}
+\label{sec:schedules}
+
+\subsection{Noise Schedule}
+\label{ssec:noise_schedule}
+
+A \textbf{linear beta schedule} is used for training:
+$\beta_1 = 10^{-4}$, $\beta_T = 2 \times 10^{-2}$, with $T = 1000$ total
+timesteps.
+This schedule is implemented via the \texttt{DDPMScheduler} from
+\texttt{diffusers}.
+
+\subsection{Residual Prediction}
+\label{ssec:residual}
+
+Rather than denoising the absolute target frame $x_{t+1}$, the model is
+trained to denoise the normalised inter-frame residual:
+\[
+  r_{t+1} = \frac{x_{t+1} - x_t}{2} \;\in\; [-1, 1],
+\]
+where $x_t$ is the most recent context frame.
+This \emph{residual parameterisation} concentrates the generative task on the
+small incremental change between consecutive frames, which is far easier to
+learn than the full absolute intensity, and also closes the gap between the
+model and the copy-last-frame baseline.
+The predicted residual is combined with $x_t$ at sampling time to recover
+the full predicted next frame $\hat{x}_{t+1} = x_t + 2\,\hat{r}_{t+1}$.
+
+\subsection{DDIM Sampling}
+\label{ssec:ddim_sampling}
+
+Inference uses \textbf{DDIM} with $S = 150$ denoising steps and
+$\eta = 0$ (fully deterministic).
+This reduces sampling time by a factor of $T/S = 6.7\times$ compared to
+full DDPM ancestral sampling.
+
+\section{Training Objective}
+\label{sec:training_objective}
+
+The primary training loss is mean squared error between the model's noise
+prediction and the true noise:
+\begin{equation}
+  \calL_{\text{MSE}} = \E_{x_0,\, t,\, \eps}\!\left[
+    \left\|\eps - \eps_\theta(x_t, t, \mathbf{Z}, \mathbf{m})\right\|^2
+  \right].
+  \label{eq:mse_loss}
+\end{equation}
+
+\subsection{L1 Regularisation on the Predicted Clean Image}
+\label{ssec:l1_loss}
+
+An additional $\ell_1$ penalty is applied on the reconstructed clean image
+$\hat{x}_0 = (x_t - \sqrt{1-\bar\alpha_t}\,\eps_\theta) / \sqrt{\bar\alpha_t}$:
+\begin{equation}
+  \calL_{x_0} = \left\|\hat{x}_0 - x_0\right\|_1.
+  \label{eq:l1_loss}
+\end{equation}
+This term penalises large pixel-level errors on the clean prediction and
+provides a complementary gradient signal to the noise-space loss.
+The weight is set to $\lambda_{x_0} = 0.02$.
+
+\subsection{Laplacian Edge Loss}
+\label{ssec:laplacian_loss}
+
+A Laplacian penalty encourages the model to preserve high-frequency image
+detail (edges and texture) that $\ell_2$-on-noise tends to smooth out:
+\begin{equation}
+  \calL_{\text{Lap}} =
+    \left\|\nabla^2 \hat{x}_0 - \nabla^2 x_0\right\|^2_2,
+  \label{eq:lap_loss}
+\end{equation}
+where $\nabla^2$ denotes a fixed $3 \times 3$ discrete Laplacian convolution.
+The weight is $\lambda_{\text{Lap}} = 0.05$.
+
+\subsection{Transition-Aware Weighting}
+\label{ssec:transition_loss}
+
+To ensure that the model receives adequate supervision at morpho-kinetic phase
+transitions, a weighted random sampler is used during training to set the
+fraction of transition pairs to $20\%$ of each batch.
+An additive transition loss term is applied with weight
+$\lambda_{\text{trans}} = 0.5$.
+
+\subsection{Min-SNR Reweighting}
+\label{ssec:minsnr}
+
+Min-SNR reweighting~\cite{hang2023minsnr} is applied with
+$\gamma_{\text{SNR}} = 5.0$ to balance gradient contributions across the noise
+schedule.
+The total loss is:
+\begin{equation}
+  \calL = w(t)\cdot\calL_{\text{MSE}}
+        + \lambda_{x_0}\,\calL_{x_0}
+        + \lambda_{\text{Lap}}\,\calL_{\text{Lap}},
+  \label{eq:total_loss}
+\end{equation}
+where $w(t) = \min(\SNR(t), \gamma_{\text{SNR}})$.
+
+\section{Context Perturbation}
+\label{sec:ctx_perturbation}
+
+A known challenge in autoregressive generation is \emph{exposure bias}: the
+model is trained on ground-truth context but evaluated on its own
+(potentially erroneous) outputs.
+To bridge this gap, context frames are randomly perturbed during training.
+A recency-weighted scheme applies perturbation most strongly to the most
+recent context frame:
+\begin{itemize}
+  \item The newest frame ($x_t$) is perturbed with probability
+        $p_{\text{perturb}} = 0.50$.
+  \item The $j$-th-newest frame is perturbed with probability
+        $p \cdot d^{j-1}$ where $d = 0.50$ is the decay factor.
+  \item Perturbation consists of additive Gaussian noise
+        ($\sigma = 0.07$) followed by brightness scaling
+        ($\text{scale} \sim \mathcal{U}[0.80, 1.00]$).
+\end{itemize}
+The rationale is that rollout errors accumulate in the most recent frames,
+so training with perturbed recent frames better represents the distribution
+encountered during free-running rollout.
+
+\section{Optimiser and Regularisation}
+\label{sec:optimiser}
+
+\subsection{Optimiser}
+\label{ssec:optimizer}
+
+The model is trained with \textbf{AdamW}~\cite{loshchilov2019decoupled}
+(learning rate $\eta = 10^{-4}$, default $\beta_1, \beta_2$, weight decay
+$10^{-2}$).
+Gradient norms are clipped to $1.0$ at each step.
+
+\subsection{Learning Rate Schedule}
+\label{ssec:lr_schedule}
+
+A \textbf{linear warm-up} over 10 epochs (starting from $0.10 \times \eta$)
+is followed by \textbf{cosine annealing} with minimum learning rate
+$\eta_{\min} = 10^{-7}$.
+
+\subsection{Exponential Moving Average}
+\label{ssec:ema}
+
+An \textbf{EMA} of model weights is maintained with decay $0.9995$,
+starting from step 100.
+EMA weights are used for all validation, sampling, and checkpoint selection.
+
+\subsection{Data Augmentation}
+\label{ssec:augmentation}
+
+Identical augmentations are applied to both context frames and the target to
+maintain temporal consistency:
+\begin{itemize}
+  \item Horizontal flip: $p = 0.5$.
+  \item Vertical flip: $p = 0.1$.
+  \item Random rotation: $\pm 5°$.
+  \item Brightness jitter: $\pm 0.1$.
+  \item Contrast jitter: $\pm 0.1$.
+\end{itemize}
+
+\section{Training Configuration Summary}
+\label{sec:config_summary}
+
+The complete set of training hyperparameters is given in
+Table~\ref{tab:hyperparams}.
+
+\begin{table}[H]
+\centering
+\caption{Diffusion model training hyperparameters.}
+\label{tab:hyperparams}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Context window ($k$)                  & 5 frames \\
+Image resolution                       & $256 \times 256$ px \\
+Batch size                             & 32 \\
+Training epochs                        & 1000 \\
+Learning rate                          & $1 \times 10^{-4}$ \\
+LR warm-up epochs                      & 10 \\
+LR schedule                            & Cosine annealing \\
+Minimum LR                             & $1 \times 10^{-7}$ \\
+Gradient clip                          & 1.0 \\
+Diffusion timesteps ($T$)             & 1000 \\
+Noise schedule                         & Linear ($\beta_1{=}10^{-4}$, $\beta_T{=}2{\times}10^{-2}$) \\
+DDIM sampling steps ($S$)             & 150 \\
+DDIM $\eta$                           & 0 (deterministic) \\
+Residual prediction                    & Yes \\
+$v$-prediction                         & No ($\varepsilon$-prediction) \\
+Time embedding dim ($d_\text{time}$)  & 8 \\
+Context embedding dim ($D$)           & 96 \\
+Context summary channels ($c_\ctx$)   & 4 \\
+$\ell_1$-$x_0$ weight ($\lambda_{x_0}$) & 0.02 \\
+Laplacian weight ($\lambda_\text{Lap}$) & 0.05 \\
+Transition loss weight                 & 0.5 \\
+Min-SNR $\gamma$                       & 5.0 \\
+EMA decay                              & 0.9995 \\
+Context perturb probability            & 0.50 (newest frame) \\
+Context perturb noise std              & 0.07 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ==============================================================================
+\chapter{Experiments and Results}
+\label{chap:experiments}
+% ==============================================================================
+
+\section{Evaluation Setup}
+\label{sec:eval_setup}
+
+All experiments are conducted on the held-out \textbf{test split}, which
+contains 69 embryos not seen during training or model selection.
+Test pairs are constructed using the same windowed scheme described in
+\Cref{ssec:pair_construction}.
+
+Inference uses DDIM with 150 steps, $\eta = 0$ (deterministic), and a fixed
+random seed.
+All images are generated at $256 \times 256$ resolution (the training
+resolution).
+
+\subsection{Metrics}
+\label{ssec:metrics}
+
+The following metrics are computed:
+\begin{itemize}
+  \item \textbf{MSE}: mean squared error between generated and ground-truth
+        frames (lower is better).
+  \item \textbf{MAE}: mean absolute error (lower is better).
+  \item \textbf{SSIM}: structural similarity index~\cite{wang2004ssim},
+        which evaluates luminance, contrast, and structural similarity
+        jointly (higher is better; perfect score = 1).
+  \item \textbf{LPIPS}: learned perceptual image patch similarity~\cite{zhang2018lpips},
+        based on deep feature distances (lower is better; perceptually
+        perfect = 0).
+\end{itemize}
+
+\section{One-Step Next-Frame Prediction}
+\label{sec:onestep}
+
+The primary experiment evaluates one-step prediction under \emph{teacher
+forcing}: the context window always contains ground-truth frames.
+The model generates $\hat{x}_{t+1}$ for each test pair and the result is
+compared against the ground-truth target.
+
+Table~\ref{tab:onestep} reports the quantitative results averaged over all
+test pairs.
+
+\begin{table}[H]
+\centering
+\caption{Quantitative results for one-step next-frame prediction on the test
+         set (teacher forcing).}
+\label{tab:onestep}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Setting} & \textbf{MSE} & \textbf{MAE} & \textbf{SSIM} & \textbf{LPIPS} \\
+\midrule
+One-step (all) & 0.1451 & 0.2472 & 0.4360 & 0.1165 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:onestep_qual} shows representative one-step prediction
+examples, with context frames, ground-truth target, and generated next frame.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{figures/onestep_examples}
+\caption{Qualitative one-step prediction examples. From left to right:
+         context frames $x_{t-k+1}, \ldots, x_t$, ground truth $x_{t+1}$,
+         and the model's prediction $\hat{x}_{t+1}$.}
+\label{fig:onestep_qual}
+\end{figure}
+
+\section{Transition vs.\ Non-Transition Analysis}
+\label{sec:transition}
+
+To assess model behaviour at morphological transitions, test pairs are
+partitioned into \emph{transition} pairs (phase label changes between $t$
+and $t{+}1$) and \emph{non-transition} pairs.
+
+Table~\ref{tab:transition} shows that performance is comparable in both
+settings, suggesting that the model does not collapse when predicting across
+phase boundaries.
+
+\begin{table}[H]
+\centering
+\caption{One-step prediction performance on transition vs.\ non-transition
+         test samples.}
+\label{tab:transition}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Subset} & \textbf{MSE} & \textbf{MAE} & \textbf{SSIM} & \textbf{LPIPS} \\
+\midrule
+Transition     & 0.1424 & 0.2431 & 0.4355 & 0.1181 \\
+Non-transition & 0.1418 & 0.2445 & 0.4312 & 0.1100 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Multi-Step Rollout Evaluation}
+\label{sec:rollout}
+
+To evaluate temporal stability, the model is tested under \textbf{free-running
+rollouts}: starting from a ground-truth context window, generated frames are
+appended to the context and used as input for subsequent steps (no teacher
+forcing).
+
+Metrics are computed independently at each rollout depth by comparing
+generated frames to the corresponding ground-truth frames.
+Table~\ref{tab:rollout} and Figure~\ref{fig:rollout_metrics} present the
+results.
+
+\begin{table}[H]
+\centering
+\caption{Rollout performance as a function of prediction horizon (free-running,
+         no teacher forcing). All four metrics degrade with rollout depth.}
+\label{tab:rollout}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Horizon} & \textbf{MSE} & \textbf{MAE} & \textbf{SSIM} & \textbf{LPIPS} \\
+\midrule
+$t{+}1$ & 0.1446 & 0.2376 & 0.4478 & 0.0866 \\
+$t{+}2$ & 0.1891 & 0.2915 & 0.3572 & 0.1355 \\
+$t{+}3$ & 0.1850 & 0.2921 & 0.3723 & 0.1678 \\
+$t{+}4$ & 0.1931 & 0.3040 & 0.3464 & 0.1959 \\
+$t{+}5$ & 0.2182 & 0.3307 & 0.3026 & 0.2131 \\
+$t{+}6$ & 0.2491 & 0.3645 & 0.2501 & 0.2597 \\
+$t{+}7$ & 0.2283 & 0.3491 & 0.2943 & 0.2569 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{figures/rollout_metrics}
+\caption{Rollout SSIM and LPIPS as a function of prediction horizon.
+         Performance degrades monotonically (with minor fluctuations),
+         reflecting error accumulation in the autoregressive context.}
+\label{fig:rollout_metrics}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{figures/rollout_examples}
+\caption{Qualitative multi-step rollout example. Each row shows the
+         ground-truth sequence (top) and the model's free-running predictions
+         (bottom) for a single test embryo.}
+\label{fig:rollout_qual}
+\end{figure}
+
+\section{Qualitative Observations}
+\label{sec:qualitative}
+
+Qualitative inspection of generated frames reveals that:
+\begin{itemize}
+  \item For short horizons ($t{+}1$, $t{+}2$), generated frames preserve the
+        coarse embryo structure, cell boundary positions, and overall intensity
+        distribution.
+  \item At medium horizons ($t{+}3$--$t{+}5$), fine morphological detail
+        starts to blur and some structural deformation becomes apparent.
+  \item At longer horizons ($t{+}6$--$t{+}7$), noticeable structural drift
+        and loss of cell boundary sharpness are observed.
+  \item The model never collapses to a blurry mean; generated frames retain
+        embryo-like appearance throughout the evaluated rollout window.
+\end{itemize}
+
+% ==============================================================================
+\chapter{Discussion}
+\label{chap:discussion}
+% ==============================================================================
+
+\section{Summary of Findings}
+\label{sec:summary}
+
+The experimental results demonstrate that the proposed context-conditioned
+diffusion model can generate visually plausible next-frame predictions for
+human embryo time-lapse sequences.
+For short-term prediction (one step, teacher forcing), the model achieves
+SSIM $= 0.436$ and LPIPS $= 0.116$, preserving coarse embryo structure and
+maintaining temporal continuity with the conditioning context.
+Transition and non-transition pairs show comparable performance, indicating
+that the model does not systematically fail at morpho-kinetic boundaries.
+
+Free-running rollout performance degrades with horizon, which is expected in
+any autoregressive system subject to error accumulation.
+The degradation is gradual rather than catastrophic, suggesting that the
+context perturbation training scheme and the residual prediction
+parameterisation are effective in bridging the train–rollout distribution
+gap to some extent.
+
+\section{Limitations}
+\label{sec:limitations}
+
+Several limitations affect the current approach:
+
+\begin{enumerate}
+  \item \textbf{Single-plane grayscale imagery.} The model is trained and
+        evaluated on F$0$ only.
+        The three-dimensional structure of the embryo is not captured, and
+        focal-plane information that could inform depth-dependent morphological
+        changes is ignored.
+
+  \item \textbf{Pixel-level evaluation metrics.} MSE, MAE, SSIM, and LPIPS
+        measure pixel and perceptual similarity but do not directly evaluate
+        biological correctness.
+        A generated frame with excellent SSIM may still correspond to a
+        morphologically impossible developmental state.
+
+  \item \textbf{No explicit phase supervision in the diffusion objective.}
+        Phase annotations are available but are not incorporated into the
+        training loss.
+        The model does not explicitly reason about discrete developmental
+        states, which may contribute to inconsistencies at phase transitions
+        and over long rollouts.
+
+  \item \textbf{Limited training scale.} Due to computational and time
+        constraints within the thesis period, training duration, architectural
+        search, and hyperparameter optimisation were limited.
+        Longer training and larger models are expected to improve performance
+        substantially.
+
+  \item \textbf{Autoregressive error accumulation.} The model is trained
+        with a one-step objective; there is no explicit long-horizon
+        consistency constraint.
+        This is the fundamental cause of rollout degradation and would require
+        architectural or training-objective changes to address systematically.
+\end{enumerate}
+
+\section{Future Work}
+\label{sec:future_work}
+
+Building on the baseline established in this thesis, the following directions
+are identified as the highest priority for future work:
+
+\begin{enumerate}
+  \item \textbf{Phase-conditioned or phase-aware training.}
+        Incorporating phase labels into the diffusion training objective
+        (e.g.\ via classifier-free guidance or phase-predictive auxiliary
+        losses) may improve morphological consistency at transitions.
+
+  \item \textbf{Multi-plane or volumetric conditioning.}
+        Conditioning on multiple focal planes simultaneously would give the
+        model access to 3D structural information and likely improve biological
+        realism.
+
+  \item \textbf{Long-horizon training objectives.}
+        Curriculum strategies~\cite{bengio2009curriculum} or scheduled sampling
+        of self-generated context during training could close the
+        train/rollout distribution gap more aggressively than the current
+        perturbation scheme.
+
+  \item \textbf{Temporal consistency losses.}
+        Auxiliary losses that penalise temporal inconsistency across multiple
+        generated steps (e.g.\ via a temporal discriminator) could enforce
+        smoother long-rollout trajectories.
+
+  \item \textbf{Larger architectures.}
+        The current model uses relatively modest channel widths
+        $(32, 64, 128, 256, 256)$.
+        Increasing model capacity with the same training recipe is likely to
+        improve one-step and rollout performance.
+
+  \item \textbf{Biologically-grounded evaluation.}
+        Developing evaluation protocols that assess morpho-kinetic plausibility
+        (e.g.\ whether generated sequences follow the correct phase order) would
+        complement the current pixel-level metrics.
+\end{enumerate}
+
+% ==============================================================================
+\chapter{Conclusion}
+\label{chap:conclusion}
+% ==============================================================================
+
+This thesis presented a diffusion-based approach to next-frame prediction in
+human embryo time-lapse sequences.
+The key contributions are:
+\begin{itemize}
+  \item A reproducible preprocessing pipeline that produces a high-quality
+        silver dataset from 704 embryos across 7 focal planes.
+  \item A multi-class morpho-kinetic phase classifier (weighted F1$= 0.643$
+        on F$0$) trained for analysis and optional rollout guidance.
+  \item A context-conditioned DDPM model with cross-attention context
+        conditioning, absolute frame-index temporal embedding, residual
+        prediction parameterisation, and context perturbation for exposure bias
+        mitigation.
+  \item A systematic quantitative and qualitative evaluation covering
+        one-step teacher-forced prediction, transition/non-transition analysis,
+        and multi-step free-running rollouts.
+\end{itemize}
+
+The results demonstrate the feasibility of diffusion-based embryo time-lapse
+prediction, with SSIM $= 0.436$ and LPIPS $= 0.116$ for one-step prediction
+and plausible short-horizon rollouts.
+Rollout quality degrades over longer horizons, motivating future work on
+phase-aware conditioning, multi-horizon training objectives, and
+biologically-grounded evaluation.
+
+% ==============================================================================
+%  Bibliography
+% ==============================================================================
+\printbibliography[heading=bibintoc, title={References}]
+
+% ==============================================================================
+%  Appendix
+% ==============================================================================
+\appendix
+
+\chapter{Phase CSV Format}
+\label{app:phase_csv}
+
+Each embryo's annotation file follows the format:
+\begin{verbatim}
+phase,start_frame
+pPB2,1
+pPNa,4
+pPNf,15
+p2,22
+...
+\end{verbatim}
+The \texttt{start\_frame} column records the first frame index at which
+the corresponding phase was observed.
+Phases without a recorded start frame are absent from the file.
+Frames are assigned a phase label by finding the latest phase whose
+\texttt{start\_frame} does not exceed the frame index in question.
+
+\chapter{Hough Circle Detection Parameters}
+\label{app:hough}
+
+Embryo-centred cropping uses OpenCV's \texttt{HoughCircles} function
+applied to a Gaussian-blurred Canny edge map.
+Parameters are tuned to the expected embryo size range in the dataset
+(typically $200$--$350$ pixel diameter in the original $500 \times 500$
+resolution).
+When no circle is detected (fewer than 1 hit), the fallback centre crop
+extracts a fixed $400 \times 400$ window from the image centre before
+resizing.
+
+\chapter{Repository Structure}
+\label{app:repo}
+
+\begin{verbatim}
+thesis/
+├── data/
+│   ├── embryo_dataset_bronze/
+│   ├── embryo_dataset_annotations/
+│   └── embryo_dataset_silver/<plane>/<embryo>/
+├── preprocessing/
+│   ├── preprocess_dataset.ipynb
+│   └── train_presence_classifier.ipynb
+├── classifier/
+│   └── train_phase_classifier.ipynb
+├── diffusion/
+│   ├── models.py
+│   ├── train_diffusion.ipynb
+│   ├── embryo_diffusion_models/
+│   ├── diffusion_samples/
+│   └── cache/
+├── figures/
+├── requirements.txt
+└── README.md
+\end{verbatim}
+
+\end{document}
